@@ -58,4 +58,7 @@ export PROMPT_COMMAND='history -a; history -r; check_quest'
 
 # If not running interactively, do not do anything
 [[ $- != *i* ]] && return
-[[ -z "$TMUX" ]] && exec tmux attach
+if [ -n "$SSH_TTY" ] && [ -z "$TMUX" ]; then
+  read -p "Press <ENTER> to continue." enterkey
+  [[ -z "$TMUX" ]] && exec tmux attach
+fi
