@@ -2,43 +2,21 @@
 
 ## Synopsis
 
-The Learning VM (Virtual Machine) is a self contained learning environment.
-It includes with everything a new user needs to get started learning Puppet.
-The courses are in an extensible quest-based format to allow users to
-explore and build on concepts at their own pace. 
+The Puppet Learning VM (Virtual Machine) is an artisinal, open-source,
+learning environment for the discerning Puppet user.
 
-The Learning VM is written with Puppet Enterprise (PE) in mind, and some of
-the content is PE-specific. That being said, however, a user interested
-in Puppet Open Source will likely find the content helpful as well.
+This repository contains the base collection of quests pre-installed
+on the Learning VM.
 
-Because the VM and Quest Guide are self contained, a user can learn
-Puppet anywhere; after the initial download, no internet connection is
-required.
+While these quests are written with certain filepaths and settings specific
+to Puppet Enterprise (PE) in mind, a user interested in Puppet Open Source will
+find the majority of the content easily adaptable.
 
 ## Quest content
 
-Content for the Quest Guide is created in a Markdown (.md) format. We're
-currently using the (Jekyll)[http://jekyllrb.com/] static site generator
-to build the Quest Guide from raw Markdown source. While the bulk of
-content follows standard (Markdown)[http://daringfireball.net/projects/markdown/]
-syntax, the content includes a few other elements. We'll go over
-some conventions and extensions below. 
-
-### YAML Header
-
-Each quest Markdown file must begin with a yaml header. This allows
-Jekyll to identify the file and provides variables to be used in
-processing. Currently, this header will consist of two lines, marked
-off from the rest of the file by `---` lines.
-
-The first defines the title, and should be set to the title of the quest.
-The second tells Jekyll what layout template to use in generating html from
-the Markdown. This should always be set to `default`.
-
-	---
-	title: Resource Ordering
-	layout: default
-	---
+The prose content of quests is written in (Markdown)[http://daringfireball.net/projects/markdown/].
+For formatting not supported in the Markdown standard, we use the Liquid template
+system. Specific liquid templates available are covered below. 
 
 ### Title and Headers
 
@@ -70,14 +48,6 @@ We use the Liquid templating system to extend the syntax available
 in Markdown and allow us to include asides and custom-formatted
 task notation.
 
-These custom templates are defined by Ruby files in the
-`Quest_Guide/_plugins` directory.
-
-Errors in template syntax will prevent Jekyll from running properly.
-Before making a pull request with content changes, make sure that
-Jekyll will run. If there are Liquid syntax errors, Jekyll will throw
-a Liquid Exception and point you to the offending file.
-
 #### Code Highlighting
 
 Blocks of code must be wrapped in `{% highlight <language> %} {% endhighlight %}`
@@ -85,14 +55,11 @@ tags, like so:
 
 	{% highlight puppet %}
 	user { 'root':
-  		ensure           => 'present',
-  	{% endhighlight %}
+  		ensure => 'present',
+  }
+  {% endhighlight %}
 
 #### Asides
-
-(NOTE: We're considering deprecating the tip, warning, and fact
-aside styles or replacing them with to simplify our styles and
-formatting)
 
 There are three types of aside that will be displayed floating
 to the right of the text. Each has an icon according to its
@@ -128,6 +95,8 @@ Content of the aside.
 ```
 
 #### Tasks
+
+(This testing system is deprecated!)
 
 Finally, there is a template to be used in numbering tasks and specifying
 completion steps for the automated testing system. Place this before
@@ -174,38 +143,7 @@ A File command will look like this:
 {% endtask %}
 ```
 
-(NOTE: Though these completion steps are currently included in the corresponding
-quest Markdown files, they will likely be split out into separate files in
-the future.)
-
-## Jekyll
-
-The Quest Guide is a static website generated from source Markdown and served
-by Jekyll.  To view the site, first install the ruby gem Jekyll:
-	
-	gem install jekyll
-	
-When Jekyll is successfully installed, you can serve the
-website by navigating to the top directory:
-
-	cd /path/to/courseware-lvm/Quest_Guide
-	
-and entering the command:
-
-	jekyll serve --watch
-	
-Now open your web browser and point it to:
-	
-	localhost:4000
-	
-To build the HTML without launching the development server, use the command:
-
-	jekyll build
-	 
 ## Quest ordering
 
-Quest_Guide/_data/quest_order.yml contains a list of quests with url and
-title. The order of quests in this file determines the order that they
-will be listed in the website navbar.
-
-Whenever possible, this file should be the single source of quest meta-data.
+The `index.json` contains a list of quests in the order they will appear in the
+navigation bar of the quest guide.
