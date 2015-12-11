@@ -36,10 +36,6 @@ When you're ready to get started, type the following command:
 
 ## Application orchestrator
 
-> A quotation
-
-> -The person who said it
-
 To understand how the Application Orchestrator works, let's imagine a simple three
 tier web application.
 
