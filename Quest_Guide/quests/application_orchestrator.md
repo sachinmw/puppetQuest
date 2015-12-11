@@ -43,7 +43,7 @@ When you're ready to get started, type the following command:
 To understand how the Application Orchestrator works, let's imagine a simple three
 tier web application.
 
-(IMAGE)
+{% figure '../assets/orchestrator1.png' %}
 
 We have a single load balancer that distributes requests among three webservers, which
 all connect to the same database server.
@@ -57,7 +57,7 @@ each node in this example contains some components of the application: the webse
 database, and load balancer along with whatever other resources are necessary to
 support and configure their application-specific content and services.
 
-(IMAGE)
+{% figure '../assets/orchestrator2.png' %}
 
 This application specific configuration is called a component. In our example,
 we define components for the database, webserver, and loadbalancer. Each
@@ -68,13 +68,13 @@ resource type is flexible enough to include multiple resources and subclasses, a
 unlike a class it can be declared multiple times within the same scope, allowing
 our environment to have multiple instances of, for instance, the webserver component.
 
-(IMAGE)
+{% figure '../assets/orchestrator3.png' %}
 
 With all the components defined, we next define their relationships with one another
 as an application. If your application is packaged as a module, this application
 definition will generally go in your `init.pp` manifest.
 
-(IMAGE)
+{% figure '../assets/orchestrator4.png' %}
 
 The application definition tells these components how they'll communicate with
 one another and allows the Puppet Application Orchestrator determine the order
@@ -272,12 +272,21 @@ What we do here will be a little bit simpler than the three tier application we 
 above. We can save you a little typing, and still demonstrate the key features of the Application
 Orchestrator.
 
-(IMAGE)
+{% figure '../assets/orchestrator5.png' %}
 
 In this case, we're going to have two separate components. One will define our MySQL database
 configuration and will be applied to the `database.learning.puppetlabs.vm` node. The other
 will define the configuration for an Apache web server and a simple PHP application and
 be applied to the `webserver.learning.puppetlabs.vm` node.
+
+We can use existing modules to configure MySQL and Apache. Ensure that these are installed
+on your master:
+
+  puppet module install puppetlabs-mysql
+
+and
+
+  puppet module install puppetlabs-apache
 
 To orchestrate this kind of deployment, we need to make sure two things happen. First,
 we have to make sure our nodes are deployed in the correct order so we have our dependencies
