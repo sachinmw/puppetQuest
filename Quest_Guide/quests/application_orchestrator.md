@@ -104,7 +104,7 @@ but why not use Puppet to configure Puppet? There is an `ini_setting` resource
 that will let us make the necessary changes to the `use_cached_catalog` and
 `pluginsync` settings on each agent's `puppet.conf` configuration file.
 
-  vim /etc/puppetlabs/code/environments/production/manifests/site.pp
+    vim /etc/puppetlabs/code/environments/production/manifests/site.pp
 
 Because we want to apply this configuration to both the
 `database.learning.puppetlabs.vm` and `webserver.learning.puppetlabs.vm` nodes,
@@ -169,32 +169,31 @@ class. Click the **edit** button to change the value of this parameter from
 Return to your terminal session on the puppet master (i.e. the Learning VM) and
 trigger a puppet run. (Or, if you prefer, trigger a run via the PE console.)
 
-  puppet agent -t
+    puppet agent -t
 
 ### Client Configuration and Permissions
 
-There's one piece to put in place before you can use the Puppet Orchestrator tools.
 While the Application Orchestration service runs on your puppet master, the
-Puppet Orchestrator command-line tools can be run anywhere with network access to
-the puppet master. This means that we need to take a few steps to ensure that this
-communication goes smoothly.
+client can be run on any system with a network connection to the master. This
+means you can manage your infrastructure directly from your workstation. Because
+we can't assume that the client will be run on a system with a puppet configuration
+file pointing to the correct URL and environment, we need to set these explicitly.
+While these things could also be specified as flags from the command line,
+creating a configuration file will save you the trouble of typing them out each
+time.
 
-We need to configure our client to tell it where to find the puppet master.
-Remember, we could be running this client on any machine, even one outside of our
-Puppetized infrastructure. This is why we have to set this configuration separately,
-and can't simply rely the address of the puppet master from the puppet agent
-configuration.
+First, create the directory structure where this configuration file
+will be kept.
 
-First, we need to create the directory structure where this configuration file
-will live.
-
-  mkdir -p ~/.puppetlabs/etc/puppet
+    mkdir -p ~/.puppetlabs/etc/puppet
 
 Now create your orchestrator configuration file.
 
-  vim ~/.puppetlabs/etc/puppet/orchestrator.conf
+    vim ~/.puppetlabs/etc/puppet/orchestrator.conf
 
-The file is formatted in JSON. We'll specify the following options
+The file is formatted in JSON. (Remember that the while final commas in your
+hashes are a best practice in your Puppet code, they're invalid JSON!)
+Set the following options:
 
 {% highlight json %}
 {
@@ -205,13 +204,9 @@ The file is formatted in JSON. We'll specify the following options
 }
 {% endhighlight %}
 
-(Note that these items could also be specified as flags from the command line.
-Creating the configuration file saves you the trouble of typing them out each
-time.)
-
-With this configuration file created, the Puppet Orchestrator client knows where
-the puppet master is, but the puppet master still needs to be able to verify that
-the user running commands from the Puppet Orchestrator has the correct permissions.
+Now the Puppet Orchestrator client knows where the puppet master is, but the puppet
+master still needs to be able to verify that the user running commands from the
+Puppet Orchestrator has the correct permissions.
 
 This is achieved with PE's Role Based Access Control (RBAC) system, which we can
 configure through the PE console.
@@ -238,7 +233,10 @@ Once this new role is created, click on its name to modify it. Select your
 
 Finally, go to the **Permissions** tab. Select "Orchestration" from the **Type**
 drop-down menu, and "Use orchestration" from the **Permission** drop-down.
-Click **Add permission** and commit your change. 
+Click **Add permission**. We also want to give this user permissions to modify
+the lifetime of the token so we don't have to regererate it every five minutes.
+Select "Tokens" from the **Type** drop-down menu, and "Override default expiry"
+from the **Permission** drop-down menu. Add the permission, and commit your changes. 
 
 ### Client token
 
@@ -247,96 +245,106 @@ access token to authenticate to the Orchestration service.
 
 The `puppet access` tool helps manage authentication. Use the
 `puppet access login` command to authenticate, and it will save a token.
+Add the `--lifetime=1d` flag so you won't have to keep generating new
+tokens as you work.
 
-  puppet access access login --service-url https://learning.puppetlabs.vm:4433/rbac-api
+    puppet access access login --service-url https://learning.puppetlabs.vm:4433/rbac-api --lifetime=1d
 
-If you get an error message, double check that you entered the url correctly.
+When prompted, supply the username and password you set in the PE console's
+RBAC system: **orchestrator** and **puppet**.
 
-(Note that this expires!)
+(If you get an error message, double check that you entered the url correctly.)
 
 ## Puppetized Applications
 
-Now that you're configured to run the Puppet Orchestrator, you're ready to define
-your application.
+Now that you've set up your master and agent nodes for the Puppet Orchestrator and
+configured your client, you're ready to define your application.
 
 Just like the Puppet code you've worked with in previous quests, an application definition
-should be packaged in a Puppet module. The application you'll be creating in this quest
+is generally packaged in a Puppet module. The application you'll be creating in this quest
 will be based on the simple Linux Apache MySQL PHP (LAMP) stack pattern.
 
 Before we dive into the code, let's take a moment to review the plan for this application.
-What we do here will be a little bit simpler than the three tier application we discussed
+What we do here will be a bit simpler than the three tier application we discussed
 above. We can save you a little typing, and still demonstrate the key features of the Application
 Orchestrator.
 
 {% figure '../assets/orchestrator5.png' %}
 
-In this case, we're going to have two separate components. One will define our MySQL database
-configuration and will be applied to the `database.learning.puppetlabs.vm` node. The other
-will define the configuration for an Apache web server and a simple PHP application and
-be applied to the `webserver.learning.puppetlabs.vm` node.
+We'll define two components which will be applied to two separate nodes. One will define the
+MySQL database configuration and will be applied to the `database.learning.puppetlabs.vm`
+node. The other will define the configuration for an Apache web server and a simple PHP
+application and be applied to the `webserver.learning.puppetlabs.vm` node.
 
 We can use existing modules to configure MySQL and Apache. Ensure that these are installed
 on your master:
 
-  puppet module install puppetlabs-mysql
+    puppet module install puppetlabs-mysql
 
 and
 
-  puppet module install puppetlabs-apache
+    puppet module install puppetlabs-apache
 
-To orchestrate this kind of deployment, we need to make sure two things happen. First,
-we have to make sure our nodes are deployed in the correct order so we have our dependencies
-set up before the dependant components in other nodes. Second, we need a method for passing
-for passing information among our nodes.
+So for these two nodes to be deployed correctly, what needs to happen? First, we have to
+make sure the nodes are deployed in the correct order. Because our webserver node relies
+on our MySQL server, we need to ensure that puppet runs on our database server first and
+webserver second. We also need a method for passing for passing information among our nodes.
+Because information our webserver needs in order to connect to our database may be based
+on facter facts, conditional logic, or functions in the puppet manifest that defines
+the component, Puppet won't know what it is until it actually generates the catalog
+for the database node. Once Puppet has this information, it needs a way to pass it on
+as parameters for our webserver component. 
 
-Both of these are met through the use of environment resources. Unlike the node-specific
-resources (like `user` or `file`) that tell puppet how to configure a single machine,
-environment resources carry data and define relationships across multiple nodes in an
+Both of these requirements are met through something called an environment resources. Unlike the
+node-specific resources (like `user` or `file`) that tell Puppet how to configure a single
+machine, environment resources carry data and define relationships across multiple nodes in an
 environment. We'll get more into the details of how this works as we implement our
 application.
 
-So if we think through the orchestration of our LAMP application, we should first ask what
-the webserver needs to know about the database server.
+So the first step in creating an application is to determine exactly what information
+needs to be passed among the components. What does this look like in the case of our
+LAMP application?
 
 1. **Host**: Our webserver needs to know the hostname of the database server.
 1. **Database**: We need to know the name of the specific database to connect to.
 1. **User**: If we want to connect to the database, we'll the name of a database user.
 1. **Password**: We'll also need to know the password associated with that user.
 
-This specifies exactly what our database server *produces* and what our webserver
+This list specifies what our database server *produces* and what our webserver
 *consumes*. If we pass this information to our webserver, it will have everything
 it needs to connect to the database hosted on the database server.
 
-To orchestrate a deployment of these two servers, we need an environment resource
-that allows all of this information to be produced when we run puppet on our database
-server, then consumed by our webserver. Like the node resources you're used to using
-this resource will have a *type* that describes what it does. To pass information
-between our webserver and database nodes, we'll create a new resource type called a
-`sql`. Unlike a typical node resource, however, our `sql` resource won't directly make
-any changes on a system. Its only job is to communicate its hash of parameters and values
-between the application component that produces it and the one that consumes it.
+To allow all this information to be produced when we run puppet on our database
+server and consumed by our webserver, we'll create a custom resource type called
+`sql`. Unlike a typical node resource our `sql` resource won't directly specify any changes
+on our nodes. You can think of it as a sort of dummy resource. Once its parameters are set
+by the database component, it just sits in an environment level catalog so those parameters
+can be consumed by the webserver component. (Note that environment resources can include more
+complex polling code that will let Puppet wait until a prerequisite service has come online
+before moving on to dependent components. Because this requires some more complex Ruby
+knowledge, it's outside the scope of this quest.)
 
-So let's go ahead and create a new `sql` resource type. We'll have to take a quick detour
-into writing Ruby to do this, but don't worry if you're not familiar with the language—because
-we don't have to worry about defining any providers, the syntax will be very simple.
+Unlike the defined resource types that can be written in native Puppet code, creating a
+custom type requires a quick detour into Ruby. The syntax will be very simple, so don't
+worry if you're not familiar with the language.
 
-As before, the first step will be creating your module directory structure. Make sure
+As before, the first step is to create your module directory structure. Make sure
 you're in your modules directory:
 
-  cd /etc/puppetlabs/code/environments/production/modules
+    cd /etc/puppetlabs/code/environments/production/modules
 
 And create your directories:
 
-  mkdir -p lamp/{manifests,lib/puppet/type}
+    mkdir -p lamp/{manifests,lib/puppet/type}
 
-(Note that we're burying our type in the `lib/puppet/type` directory. The `lib/puppet/`
+Note that we're burying our type in the `lib/puppet/type` directory. The `lib/puppet/`
 directory is where you keep any extensions to the core puppet language that your
 module provides. For example, in addition to types, you might also define new providers
-or functions.)
+or functions.
 
 Now let's go ahead and create our new `sql` resource type.
 
-  vim lamp/lib/puppet/type/sql.rb
+    vim lamp/lib/puppet/type/sql.rb
 
 The new type is defined by a block of Ruby code, like so:
 
@@ -357,10 +365,10 @@ actually have to *do* anything with this resource, so all we have to do is tell
 it what we want to name our parameters.
 
 Now that we have our new `sql` resource type, we can move on to the database
-component that will produce it. This component will lives in our `lamp` module
-and defines a configuration for a `MySQL` server, so we'll name it `lamp::myslq`.
+component that will produce it. This component lives in our `lamp` module
+and defines a configuration for a `MySQL` server, so we'll name it `lamp::mysql`.
 
-  vim lamp/manifests/mysql.pp
+    vim lamp/manifests/mysql.pp
 
 It will look like this:
 
@@ -410,10 +418,15 @@ Lamp::Mysql produces Sql {
 }
 {% endhighlight %}
 
-Next, create we'll create a webapp component to configure an Apache server
-and a simple PHP application:
+Check the the manifest with the `puppet parser` tool. Because orchestration
+uses some new syntax, include the `--app_management` flag.
 
-  vim lamp/manifests/webapp.pp
+    puppet parser validate --app_management lamp/manifests/mysql.pp
+
+Next, create a webapp component to configure an Apache server and
+a simple PHP application:
+
+    vim lamp/manifests/webapp.pp
 
 It will look like this:
 
@@ -423,6 +436,7 @@ define lamp::webapp(
   $db_user,
   $db_host,
   $db_password,
+  $docroot = '/var/www/html'
   ){
   class { 'apache':
     default_mods  => false,
@@ -432,7 +446,7 @@ define lamp::webapp(
 
   apache::vhost { $name:
     port    => '80',
-    docroot => '/var/www/html',
+    docroot => $docroot,
   }
 
   package { 'php5-mysql':
@@ -467,11 +481,15 @@ Lamp::Webapp consumes Sql {
 }
 {% endhighlight %}
 
+Again, check the syntax of your manifest.
+
+    puppet parser validate --app_management lamp/manifests/webapp.pp
+
 Now that we have all of our components ready to go, we can define the application
-itself. Because this is the main thing provided by the `lamp` module, it goes
+itself. Because the application is the main thing provided by the `lamp` module, it goes
 in the `init.pp` manifest.
 
-  vim lamp/manifests/init.pp
+    vim lamp/manifests/init.pp
 
 We've already done the bulk of the work work in our components, so this one will be pretty
 simple. The syntax for an application is similar to that of a class or defined resource type.
@@ -532,10 +550,34 @@ Lamp::Webapp consumesSql {
 }
 {% endhighlight %}
 
+Once you've finished your application definition, validate your syntax and make
+any necessary corrections.
+
+    puppet parser validate --app_management lamp/manifests/webapp.pp
+
+At this point, use the `tree` command to check that all the components of your
+module are in place.
+
+    tree lamp
+
+Your module should look like the following:
+
+    modules/lamp/
+    ├── lib
+    │   └── puppet
+    │       └── type
+    │           └── sql.rb
+    └── manifests
+        ├── init.pp
+        ├── mysql.pp
+        └── webapp.pp
+
+    4 directories, 4 files
+
 Now that your application is defined, the final step is to declare it in your `site.pp`
 manifest.
 
-  vim /etc/puppetlabs/code/environments/production/manifests/init.pp
+    vim /etc/puppetlabs/code/environments/production/manifests/site.pp
 
 Until now, declarations you've made in your `site.pp` manifest have been contained by
 the `learning.puppetlabs.vm` node block. An application, however, is applied to your
@@ -552,16 +594,14 @@ site {
       Node['database.learning.puppetlabs.vm'] => Lamp::Mysql['app1'],
       Node['webserver.learning.puppetlabs.vm'] => Lamp::Webapp['app1'],
     }
+  }
 }
 {% endhighlight %}
 
 The syntax for declaring an application is similar to that of a class or resource.
-The `db_user` and `db_password` parameters are set as usual. These will be passed through
-to the `lamp::mysql` component, then, along with the `$host` and `$database' parameters
-set to defaults in that component definition, exported to a `sql` resource and finally
-consumed by the `lamp::webapp` instance.
+The `db_user` and `db_password` parameters are set as usual.
 
-The `nodes` parameter is where the real orchestration magic happens. This parameter takes
+The `nodes` parameter is where the orchestration magic happens. This parameter takes
 a hash of nodes paired with one or more components. In this case, we've assigned the
 `Lamp::Mysql['app1']` component to `database.learning.puppetlabs.vm` and the
 `Lamp::Webapp['app1'] component to `webserver.learning.puppetlabs.vm`. When the
@@ -572,42 +612,42 @@ to determine the correct order of Puppet runs across the nodes in the applicatio
 Now that the application is declared in our `site.pp` manifest, we can use the
 `puppet app` tool to view it.
 
-  puppet app show
+    puppet app show
 
 You should see a result like the following:
 
-  Lamp['app1']
-    Lamp::Mysql['app1'] => database.learning.puppetlabs.vm
-        - produces Sql['app1']
-    Lamp::Webapp['test'] => webserver.learning.puppetlabs.vm
-        - consumes Sql['app1']
+    Lamp['app1']
+      Lamp::Mysql['app1'] => database.learning.puppetlabs.vm
+          - produces Sql['app1']
+      Lamp::Webapp['test'] => webserver.learning.puppetlabs.vm
+          - consumes Sql['app1']
 
 Now that the application is ready to go, you can test it by running the `puppet job`
 command with the `--noop` flag:
 
-  puppet job run Lamp['app1'] --noop 
+    puppet job run Lamp['app1'] --noop 
 
 After reviewing the similated changes, go ahead and trigger a real run:
 
-  puppet job run Lamp['app1']
+    puppet job run Lamp['app1']
 
 Now that your nodes are configured with your new application, let's take a moment
 to check out the result. First, we can log in to the database server and have a
 look our MySQL instance.
 
-  docker exec -it database bash
+    docker exec -it database bash
 
 Remember, no matter what OS you're on, you can use the `puppet resource` command
 to check the status of a service. Let's see if the MySQL server is running:
 
-  puppet resource service mysql
+    puppet resource service mysql
 
 You should see that the service is running. If you like, you can also open the client
 with the `mysql` command. When you're done, use `\q` to exit.
 
 Now go ahead and disconnect from the database node.
 
-  exit
+    exit
 
 Instead of logging in to our webserver node, let's just check if the server is running.
 In the pre-configured docker setup for this quest, we mapped port 80 on the
@@ -616,5 +656,3 @@ In a web browser on your host machine, go to `http://<IP_ADDRESS>:10080` to see 
 php website.
 
 ## Review
-
-Review
