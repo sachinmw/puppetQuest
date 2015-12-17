@@ -58,7 +58,7 @@ support and configure their application-specific content and services.
 This application specific configuration is called a component. In our example,
 we define components for the database, webserver, and loadbalancer. Each
 of which contains all the classes and resources necessary for a node to
-fulfull its role in the application. A component is generally a defined resource
+fulfill its role in the application. A component is generally a defined resource
 type, though it can also be a class or a single resource. A defined
 resource type is flexible enough to include multiple resources and subclasses, and
 unlike a class it can be declared multiple times within the same scope, allowing
@@ -75,12 +75,12 @@ definition will generally go in your `init.pp` manifest.
 The application definition tells these components how they'll communicate with
 one another and allows the Puppet Application Orchestrator determine the order
 of Puppet runs needed to correctly deploy the application to nodes in your
-infrastructre.
+infrastructure.
 
 This ordering of Puppet runs is a big part of how the tools in the Application
 Orchestrator work. It requires a little more direct control over when and how
 the puppet agent runs on the nodes involved in your application. If puppet runs
-simply occured at the default scheduled interval of half and hour, we'd have no
+occurred at the default scheduled interval of half and hour, we'd have no
 way of ensuring that the components of our application would be configured in the
 correct order. If, for example, the puppet run on our webserver happened to trigger
 before that on the database server, a change to the database name would break our
@@ -114,14 +114,14 @@ new node group with the name `/^.+\.learning\.puppetlabs\.vm$/`, and include two
 
 {% highlight puppet %}
 node /^.+\.learning\.puppetlabs\.vm$/ {
-  ini_setting { 'use_cached_catalog':
+  pe_ini_setting { 'use_cached_catalog':
     ensure  => present,
     path    => $settings::config,
     section => 'agent',
     setting => 'use_cached_catalog',
     value   => 'true',
   }
-  ini_setting { 'pluginsync':
+  pe_ini_setting { 'pluginsync':
     ensure  => present,
     path    => $settings::config,
     section => 'agent',
@@ -140,7 +140,7 @@ address bar of your browser. Log in with the following credentials:
 
 Go to the *Nodes* > *Inventory* section in the PE console.
 
-Click on your `database.learning.puppetlabs.vm` node, and click on the **Run Puppet...*
+Click on your `database.learning.puppetlabs.vm` node, and click on the **Run Puppet...**
 button link and **Run** button to start your puppet run. You don't need to wait for
 it to finish now. Return to the **Inventory** section and trigger a run on
 `webserver.learning.puppetlabs.vm` as well. While these runs are in progress,
@@ -150,26 +150,15 @@ again.
 
 ### Master Configuration
 
-Before we get to writing and deploying and application, however, there are a few
+Before we get to writing and deploying an application, however, there are a few
 steps we still need to do to get the Puppet Application Orchestrator tools
 configured correctly.
 
 The Puppet Orchestrator tool we'll use in this quest is a command-line interface
-that interacts with an Application Orchestration service that runs on the puppet
-master. This service is not enabled by default, so our first step will be to
-change the configuration of our puppet master to enable application services.
-
-Once you're logged in to the console, navigate to the **Nodes** > **Classification**
-section. Here, select the **PE Infrastructure** node group. This group defines the
-configuration of for the components of the Puppet stack. Click the **Classes** tab,
-and find the *use_application_services* parameter under the *puppet_enterprise*
-class. Click the **edit** button to change the value of this parameter from
-`false` to `true`. Commit your change.
-
-Return to your terminal session on the puppet master (i.e. the Learning VM) and
-trigger a puppet run. (Or, if you prefer, trigger a run via the PE console.)
-
-    puppet agent -t
+that interacts with an Application Orchestration service on the puppet
+master. We have enabled this service by default on the Learning VM, and it will
+be enabled by default in future versions of PE. (If you would like to enable it
+on your own puppet master, please see the [details in the documentation](https://docs.puppetlabs.com/pe/latest/orchestrator_install.html#enable-the-application-orchestration-service-and-orchestrator-client).)
 
 ### Client Configuration and Permissions
 
@@ -234,7 +223,7 @@ Once this new role is created, click on its name to modify it. Select your
 Finally, go to the **Permissions** tab. Select "Orchestration" from the **Type**
 drop-down menu, and "Use orchestration" from the **Permission** drop-down.
 Click **Add permission**. We also want to give this user permissions to modify
-the lifetime of the token so we don't have to regererate it every five minutes.
+the lifetime of the token so we don't have to regenerate it every five minutes.
 Select "Tokens" from the **Type** drop-down menu, and "Override default expiry"
 from the **Permission** drop-down menu. Add the permission, and commit your changes. 
 
@@ -248,7 +237,8 @@ The `puppet access` tool helps manage authentication. Use the
 Add the `--lifetime=1d` flag so you won't have to keep generating new
 tokens as you work.
 
-    puppet access access login --service-url https://learning.puppetlabs.vm:4433/rbac-api --lifetime=1d
+    puppet access login --service-url \
+    https://learning.puppetlabs.vm:4433/rbac-api --lifetime=1d
 
 When prompted, supply the username and password you set in the PE console's
 RBAC system: **orchestrator** and **puppet**.
@@ -288,12 +278,12 @@ and
 So for these two nodes to be deployed correctly, what needs to happen? First, we have to
 make sure the nodes are deployed in the correct order. Because our webserver node relies
 on our MySQL server, we need to ensure that puppet runs on our database server first and
-webserver second. We also need a method for passing for passing information among our nodes.
-Because information our webserver needs in order to connect to our database may be based
+webserver second. We also need a method for passing information among our nodes.
+Because the information our webserver needs to connect to our database may be based
 on facter facts, conditional logic, or functions in the puppet manifest that defines
 the component, Puppet won't know what it is until it actually generates the catalog
 for the database node. Once Puppet has this information, it needs a way to pass it on
-as parameters for our webserver component. 
+as parameters for our webserver component.
 
 Both of these requirements are met through something called an environment resources. Unlike the
 node-specific resources (like `user` or `file`) that tell Puppet how to configure a single
@@ -388,12 +378,12 @@ define lamp::mysql
       'mysqld' => { 'bind-address' => '0.0.0.0' }
     },
     grants => {
-      "${db_user}@${host}/${database}.*" => {
+      "${db_user}@%/${database}.*" => {
         ensure     => present,
         options    => ['GRANT'],
         privileges => ['SELECT', 'INSERT', 'UPDATE', 'DELETE'],
         table      => "${database}.*",
-        user       => "${db_user}@${host}",
+        user       => "${db_user}@%",
       },
     }
   }
@@ -445,8 +435,9 @@ define lamp::webapp(
   }
 
   apache::vhost { $name:
-    port    => '80',
-    docroot => $docroot,
+    port           => '80',
+    docroot        => $docroot,
+    directoryindex => ['index.php','index.html'],
   }
 
   package { 'php5-mysql':
@@ -459,7 +450,7 @@ define lamp::webapp(
   $indexphp = @("EOT"/)
     <?php
     \$conn = mysql_connect($db_host, $db_user, $db_password);
-    if (\$conn->connect_error) {
+    if (!\$conn) {
       echo "Connection to $db_host as $db_user failed";
     } else {
       echo "Connected successfully to $db_host as $db_user";
@@ -505,7 +496,7 @@ application lamp (
   lamp::mysql { $name:
     db_user     => $db_user,
     db_password => $db_password,
-    export      => $Sql[$name],
+    export      => Sql[$name],
   }
 
   lamp::webapp { $name:
@@ -542,7 +533,7 @@ how to map the parameters of the `sql` environment resource to our `lamp::webapp
 when we include the `consume => Sql[$name]` metaparameter.
 
 {% highlight puppet %}
-Lamp::Webapp consumesSql {
+Lamp::Webapp consumes Sql {
   db_name     => $name,
   db_user     => $user,
   db_host     => $host,
@@ -553,7 +544,7 @@ Lamp::Webapp consumesSql {
 Once you've finished your application definition, validate your syntax and make
 any necessary corrections.
 
-    puppet parser validate --app_management lamp/manifests/webapp.pp
+    puppet parser validate --app_management lamp/manifests/init.pp
 
 At this point, use the `tree` command to check that all the components of your
 module are in place.
@@ -582,7 +573,7 @@ manifest.
 Until now, declarations you've made in your `site.pp` manifest have been contained by
 the `learning.puppetlabs.vm` node block. An application, however, is applied to your
 environment independently of any classification defined in your node blocks or the PE
-console node classifier. To express this distinction, we put our application declaration
+console node classifier. To express this distinction, we declare our application instance
 in a special block called `site`.
 
 {% highlight puppet %}
@@ -622,14 +613,13 @@ You should see a result like the following:
       Lamp::Webapp['test'] => webserver.learning.puppetlabs.vm
           - consumes Sql['app1']
 
-Now that the application is ready to go, you can test it by running the `puppet job`
-command with the `--noop` flag:
+With the application is ready to go, you can run it with the `puppet job`
+command
 
     puppet job run Lamp['app1'] --noop 
 
-After reviewing the similated changes, go ahead and trigger a real run:
-
-    puppet job run Lamp['app1']
+We you can check on the status of any running or completed jobs with the
+`puppet job list` command.
 
 Now that your nodes are configured with your new application, let's take a moment
 to check out the result. First, we can log in to the database server and have a
