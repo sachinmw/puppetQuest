@@ -355,7 +355,7 @@ directory is where you keep any extensions to the core puppet language that your
 module provides. For example, in addition to types, you might also define new providers
 or functions.
 
-{% task 7 %}
+{% task 6 %}
 ---
 execute: ls
 {% endtask %}
@@ -381,6 +381,12 @@ resource live on the environment level, rather than being applied to a specific
 node. Everything else should be reasonably self-explanatory. Again, we don't
 actually have to *do* anything with this resource, so all we have to do is tell
 it what we want to name our parameters.
+
+
+{% task 7 %}
+---
+execute: ls
+{% endtask %}
 
 Now that we have our new `sql` resource type, we can move on to the database
 component that will produce it. This component lives in our `lamp` module
@@ -440,6 +446,11 @@ Check the the manifest with the `puppet parser` tool. Because orchestration
 uses some new syntax, include the `--app_management` flag.
 
     puppet parser validate --app_management lamp/manifests/mysql.pp
+
+{% task 8 %}
+---
+execute: ls
+{% endtask %}
 
 Next, create a webapp component to configure an Apache server and
 a simple PHP application:
@@ -503,6 +514,11 @@ Lamp::Webapp consumes Sql {
 Again, check the syntax of your manifest.
 
     puppet parser validate --app_management lamp/manifests/webapp.pp
+
+{% task 9 %}
+---
+execute: ls
+{% endtask %}
 
 Now that we have all of our components ready to go, we can define the application
 itself. Because the application is the main thing provided by the `lamp` module, it goes
@@ -593,6 +609,11 @@ Your module should look like the following:
 
     4 directories, 4 files
 
+{% task 10 %}
+---
+execute: ls
+{% endtask %}
+
 Now that your application is defined, the final step is to declare it in your `site.pp`
 manifest.
 
@@ -641,10 +662,15 @@ You should see a result like the following:
       Lamp::Webapp['test'] => webserver.learning.puppetlabs.vm
           - consumes Sql['app1']
 
+{% task 11 %}
+---
+execute: ls
+{% endtask %}
+
 With the application is ready to go, you can run it with the `puppet job`
 command
 
-    puppet job run Lamp['app1'] --noop 
+    puppet job run Lamp['app1']
 
 We you can check on the status of any running or completed jobs with the
 `puppet job list` command.

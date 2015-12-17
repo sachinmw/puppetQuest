@@ -45,3 +45,37 @@ describe "Task 6:" do
     file("#{MODULE_PATH}lamp/lib/puppet/type/sql.rb").content.should match /Puppet::Type\.newtype :sql, :is_capability => true do/
   end
 end
+
+describe "Task 7:" do
+  it "Define a lamp::mysql component" do
+    # Need a better test!
+    file("#{MODULE_PATH}lamp/manifests/mysql.pp").should be_file
+  end
+end
+
+describe "Task 8:" do
+  it "Define a lamp::webapp component" do
+    # Need a better test!
+    file("#{MODULE_PATH}lamp/manifests/webapp.pp").should be_file
+  end
+end
+
+describe "Task 9:" do
+  it "Define the lamp application" do
+    # Need a better test!
+    file("#{MODULE_PATH}lamp/manifests/init.pp").should be_file
+  end
+end
+
+describe "Task 10:" do
+  it "Declare an application instance in your site.pp manifest" do
+    # Need a better test!
+    file("#{PROD_PATH}manifests/site.pp").content.should match /Node\['database\.learning\.puppetlabs\.vm'\] => Lamp::Mysql\['app1'\],/
+  end
+end
+
+describe "Task 11:" do
+  it "Trigger a puppet job run to deploy your application" do
+    command('docker exec webserver curl localhost').stdout.should match /webserver/
+  end
+end
