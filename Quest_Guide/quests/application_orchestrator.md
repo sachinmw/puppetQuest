@@ -97,6 +97,8 @@ plugin sync to ensure that any changed functionality provided by plugins (e.g. f
 or providers) doesn't lead to uncoordinated changes to the nodes in your application.
 
 {% task 1 %}
+---
+execute: ls
 {% endtask %}
 
 Of course, we could log in to each node and make the configuration change directly,
@@ -113,7 +115,7 @@ new node group with the name `/^.+\.learning\.puppetlabs\.vm$/`, and include two
 `ini_setting` resources for the configuration changes we need to make:
 
 {% highlight puppet %}
-node /^.+\.learning\.puppetlabs\.vm$/ {
+node /^(webserver|database).*$/ {
   pe_ini_setting { 'use_cached_catalog':
     ensure  => present,
     path    => $settings::config,
@@ -130,6 +132,11 @@ node /^.+\.learning\.puppetlabs\.vm$/ {
   }
 } 
 {% endhighlight %}
+
+{% task 2 %}
+---
+execute: ls
+{% endtask %}
 
 We can use the console to trigger puppet runs on our two nodes directly.
 Navigate to your PE console by entering `https://<VM's IP ADDRESS>` in the
@@ -170,6 +177,11 @@ file pointing to the correct URL and environment, we need to set these explicitl
 While these things could also be specified as flags from the command line,
 creating a configuration file will save you the trouble of typing them out each
 time.
+
+{% task 3 %}
+---
+execute: ls
+{% endtask %}
 
 First, create the directory structure where this configuration file
 will be kept.
@@ -231,6 +243,12 @@ from the **Permission** drop-down menu. Add the permission, and commit your chan
 
 Now that you have a user with correct permissions, you can generate an RBAC
 access token to authenticate to the Orchestration service.
+
+{% task 4 %}
+---
+execute: ls
+{% endtask %}
+
 
 The `puppet access` tool helps manage authentication. Use the
 `puppet access login` command to authenticate, and it will save a token.
@@ -318,6 +336,11 @@ Unlike the defined resource types that can be written in native Puppet code, cre
 custom type requires a quick detour into Ruby. The syntax will be very simple, so don't
 worry if you're not familiar with the language.
 
+{% task 5 %}
+---
+execute: ls
+{% endtask %}
+
 As before, the first step is to create your module directory structure. Make sure
 you're in your modules directory:
 
@@ -331,6 +354,11 @@ Note that we're burying our type in the `lib/puppet/type` directory. The `lib/pu
 directory is where you keep any extensions to the core puppet language that your
 module provides. For example, in addition to types, you might also define new providers
 or functions.
+
+{% task 7 %}
+---
+execute: ls
+{% endtask %}
 
 Now let's go ahead and create our new `sql` resource type.
 
