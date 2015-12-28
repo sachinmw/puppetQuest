@@ -76,7 +76,7 @@ rigorously tested for compatibility with Puppet Enterprise and are fully support
 - execute: puppet module install dwerder-graphite
 {% endtask %}
 
-Now that you know what module you want, you'll need to install it to the puppet
+Now that you know what module you want, you'll need to install it to the Puppet
 master to make it available for your infrastructure. The `puppet module` tool makes
 this installation easy. Go ahead and run:
 
@@ -95,8 +95,8 @@ skip future instructions for installing modules.
 Easy enough, but what did we do, exactly?
 
 When you ran the `puppet module` command, Puppet retrieved the `graphite` module from
-Forge and placed it in the puppet master's *modulepath*. The modulepath is where
-puppet will look to find puppet classes and other files and resources made available by any
+Forge and placed it in the Puppet master's *modulepath*. The modulepath is where
+Puppet will look to find Puppet classes and other files and resources made available by any
 modules you download or create. For Puppet Enterprise, the default modulepath is
 `/etc/puppetlabs/code/environments/production/modules`.
 
@@ -133,11 +133,11 @@ But before you can access the PE console you'll need the Learning VM's IP addres
 - execute: facter ipaddress
 {% endtask %}
 
-Of course, you could use a command like `ifconfig` to find this, but let's do it the puppet
+Of course, you could use a command like `ifconfig` to find this, but let's do it the Puppet
 way. Puppet uses a tool called `facter` to collect facts about a system and make them
 available at catalog compilation. This is how it knows, for example, whether it's on
 Ubuntu and needs to use `apt-get` or CentOS and needs `yum`. You'll learn more about
-facts and conditionals in puppet later. For now, we can use `facter` in the command-line
+facts and conditionals in Puppet later. For now, we can use `facter` in the command-line
 to determine the Learning VM's IP address.
 
     facter ipaddress
@@ -178,7 +178,7 @@ Click on the new group to set the rules for this group. You only want the `learn
 this group, so instead of adding a rule, use the *Pin node* option to add the node individually.
 
 Click on the *Node name* field, and you should see the Learning VM's certname autofilled. If no matching
-certname apprears, trigger a puppet run (`puppet agent -t`) on the Learning VM. As part of the puppet
+certname apprears, trigger a Puppet run (`puppet agent -t`) on the Learning VM. As part of the Puppet
 run, the Learning VM will check in, making its information available to the console node classifier.
 
 {% figure '../assets/pin.png' %}
@@ -217,23 +217,23 @@ Set the parameters, as follows:
 1. `gr_django_ver      = "1.5"`
 
 Note that the `gr_django_ver` parameter takes a string, not float value, so it must
-be wrapped in quotes for puppet to parse it correctly.
+be wrapped in quotes for Puppet to parse it correctly.
 
 Double check that you have clicked the *Add parameter* button for all of your parameters,
 then click the *Commit 5 changes* button in the bottom right of the console window
 to commit your changes.
 
-### Run puppet
+### Run Puppet
 
 Now that you have classified the `learning.puppetlabs.vm` node with the
 `graphite` class, Puppet knows how the system should be configured, but it won't
 make any changes until a Puppet run occurs. 
 
-By default, the puppet agent daemon runs in the background on all nodes you manage with
-Puppet. Every 30 minutes, the puppet agent daemon requests a *catalog* from the
-puppet master. The puppet master parses all the classes applied to that node,
-builds the catalog to describes how the node is supposed to be configured, and
-returns this catalog to the node's puppet agent. The agent then applies any changes
+By default, the Puppet agent daemon runs in the background on all nodes you manage with
+Puppet. Every 30 minutes, the Puppet agent daemon requests a *catalog* from the
+Puppet master. The Puppet master parses all the classes applied to that node,
+builds the catalog to describe how the node is supposed to be configured, and
+returns this catalog to the node's Puppet agent. The agent then applies any changes
 necessary to bring the node into the line with the state described by the
 catalog.
 
@@ -248,14 +248,14 @@ To avoid surprises, however, we've disabled these scheduled runs on the Learning
 Instead, we'll be using the `puppet agent` tool to trigger runs manually.
 
 As you're working through this Quest Guide, keep in mind that the Learning VM is running *both*
-a puppet master *and* a puppet agent. This is a bit different than what you'd see in
-a typical architecture, where a single puppet master would serve a collection of
-puppet agent nodes. The puppet master is where you keep all your puppet code. Earlier
+a Puppet master *and* a Puppet agent. This is a bit different than what you'd see in
+a typical architecture, where a single Puppet master would serve a collection of
+Puppet agent nodes. The Puppet master is where you keep all your Puppet code. Earlier
 when you used the `puppet module` tool to install the `graphite` module, that was a
-task for the puppet master. When you want to manually trigger a puppet run with the
+task for the Puppet master. When you want to manually trigger a Puppet run with the
 `puppet agent` tool, that's a command you would use on an agent node, not the master.
 
-So put on your agent hat and trigger a puppet run:
+So put on your agent hat and trigger a Puppet run:
 
     puppet agent --test
 
@@ -278,4 +278,4 @@ Great job on completing the quest! You should now have a good idea of how to
 download existing modules from the Forge and use the PE console node classifier
 to apply them to a node. You also learned how to use the the `facter` command
 to retrieve system information, and the `puppet agent --test` command to manually
-trigger a puppet run.
+trigger a Puppet run.
