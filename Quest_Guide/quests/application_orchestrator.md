@@ -20,7 +20,7 @@ layout: default
 If you manage applications comprised of multiple services distributed across multiple
 nodes, you'll know that the orchestration of multiple nodes can pose some special
 challenges. Puppet's Application Orchestrator extends Puppet's powerful declarative model
-from the level of the single node to the complex application. Describe your app in puppet
+from the level of the single node to the complex application. Describe your app in Puppet
 code, and let the Application Orchestrator coordinate the rollout.
 
 Before getting started, you should know that this quest will be a significant step
@@ -36,8 +36,8 @@ When you're ready to get started, type the following command:
 
 ## Application orchestrator
 
-To understand how the Application Orchestrator works, let's imagine a simple three
-tier web application.
+To understand how the Application Orchestrator works, let's imagine a simple two tier
+web application with a load balancer.
 
 {% figure '../assets/orchestrator1.png' %}
 
@@ -79,10 +79,10 @@ infrastructure.
 
 This ordering of Puppet runs is a big part of how the tools in the Application
 Orchestrator work. It requires a little more direct control over when and how
-the puppet agent runs on the nodes involved in your application. If puppet runs
-occurred at the default scheduled interval of half and hour, we'd have no
+the Puppet agent runs on the nodes involved in your application. If Puppet runs
+occurred at the default scheduled interval of half an hour, we'd have no
 way of ensuring that the components of our application would be configured in the
-correct order. If, for example, the puppet run on our webserver happened to trigger
+correct order. If, for example, the Puppet run on our webserver happened to trigger
 before that on the database server, a change to the database name would break our
 application. Our webserver would still try to connect to the database from a previous
 configuration, and would result in an error when that database wasn't available.
@@ -90,7 +90,7 @@ configuration, and would result in an error when that database wasn't available.
 ### Node Configuration
 
 To avoid this kind of uncoordinated change, you must set the nodes involved in your
-application to use a cached catalog when puppet runs. This allows puppet to run
+application to use a cached catalog when Puppet runs. This allows Puppet to run
 as scheduled to avoid configuration drift, but will only make changes to the catalog
 when you intentionally re-deploy your application. Similarly you must also disable
 plugin sync to ensure that any changed functionality provided by plugins (e.g. functions
@@ -138,7 +138,7 @@ node /^(webserver|database).*$/ {
 execute: ls
 {% endtask %}
 
-We can use the console to trigger puppet runs on our two nodes directly.
+We can use the console to trigger Puppet runs on our two nodes directly.
 Navigate to your PE console by entering `https://<VM's IP ADDRESS>` in the
 address bar of your browser. Log in with the following credentials:
 
@@ -148,7 +148,7 @@ address bar of your browser. Log in with the following credentials:
 Go to the *Nodes* > *Inventory* section in the PE console.
 
 Click on your `database.learning.puppetlabs.vm` node, and click on the **Run Puppet...**
-button link and **Run** button to start your puppet run. You don't need to wait for
+button link and **Run** button to start your Puppet run. You don't need to wait for
 it to finish now. Return to the **Inventory** section and trigger a run on
 `webserver.learning.puppetlabs.vm` as well. While these runs are in progress,
 feel free to continue with the rest of this quest. We'll check in to make sure
@@ -162,17 +162,17 @@ steps we still need to do to get the Puppet Application Orchestrator tools
 configured correctly.
 
 The Puppet Orchestrator tool we'll use in this quest is a command-line interface
-that interacts with an Application Orchestration service on the puppet
+that interacts with an Application Orchestration service on the Puppet
 master. We have enabled this service by default on the Learning VM, and it will
 be enabled by default in future versions of PE. (If you would like to enable it
 on your own puppet master, please see the [details in the documentation](https://docs.puppetlabs.com/pe/latest/orchestrator_install.html#enable-the-application-orchestration-service-and-orchestrator-client).)
 
 ### Client Configuration and Permissions
 
-While the Application Orchestration service runs on your puppet master, the
+While the Application Orchestration service runs on your Puppet master, the
 client can be run on any system with a network connection to the master. This
 means you can manage your infrastructure directly from your workstation. Because
-we can't assume that the client will be run on a system with a puppet configuration
+we can't assume that the client will be run on a system with a Puppet configuration
 file pointing to the correct URL and environment, we need to set these explicitly.
 While these things could also be specified as flags from the command line,
 creating a configuration file will save you the trouble of typing them out each
@@ -205,7 +205,7 @@ Set the following options:
 }
 {% endhighlight %}
 
-Now the Puppet Orchestrator client knows where the puppet master is, but the puppet
+Now the Puppet Orchestrator client knows where the Puppet master is, but the Puppet
 master still needs to be able to verify that the user running commands from the
 Puppet Orchestrator has the correct permissions.
 
@@ -272,7 +272,7 @@ is generally packaged in a Puppet module. The application you'll be creating in 
 will be based on the simple Linux Apache MySQL PHP (LAMP) stack pattern.
 
 Before we dive into the code, let's take a moment to review the plan for this application.
-What we do here will be a bit simpler than the three tier application we discussed
+What we do here will be a bit simpler than the load-balanced application we discussed
 above. We can save you a little typing, and still demonstrate the key features of the Application
 Orchestrator.
 
@@ -294,15 +294,15 @@ and
 
 So for these two nodes to be deployed correctly, what needs to happen? First, we have to
 make sure the nodes are deployed in the correct order. Because our webserver node relies
-on our MySQL server, we need to ensure that puppet runs on our database server first and
+on our MySQL server, we need to ensure that Puppet runs on our database server first and
 webserver second. We also need a method for passing information among our nodes.
 Because the information our webserver needs to connect to our database may be based
-on facter facts, conditional logic, or functions in the puppet manifest that defines
+on facter facts, conditional logic, or functions in the Puppet manifest that defines
 the component, Puppet won't know what it is until it actually generates the catalog
 for the database node. Once Puppet has this information, it needs a way to pass it on
 as parameters for our webserver component.
 
-Both of these requirements are met through something called an environment resources. Unlike the
+Both of these requirements are met through something called an environment resource. Unlike the
 node-specific resources (like `user` or `file`) that tell Puppet how to configure a single
 machine, environment resources carry data and define relationships across multiple nodes in an
 environment. We'll get more into the details of how this works as we implement our
@@ -321,7 +321,7 @@ This list specifies what our database server *produces* and what our webserver
 *consumes*. If we pass this information to our webserver, it will have everything
 it needs to connect to the database hosted on the database server.
 
-To allow all this information to be produced when we run puppet on our database
+To allow all this information to be produced when we run Puppet on our database
 server and consumed by our webserver, we'll create a custom resource type called
 `sql`. Unlike a typical node resource our `sql` resource won't directly specify any changes
 on our nodes. You can think of it as a sort of dummy resource. Once its parameters are set
@@ -350,7 +350,7 @@ And create your directories:
     mkdir -p lamp/{manifests,lib/puppet/type}
 
 Note that we're burying our type in the `lib/puppet/type` directory. The `lib/puppet/`
-directory is where you keep any extensions to the core puppet language that your
+directory is where you keep any extensions to the core Puppet language that your
 module provides. For example, in addition to types, you might also define new providers
 or functions.
 
@@ -458,13 +458,13 @@ a simple PHP application:
 It will look like this:
 
 {% highlight puppet %}
-define lamp::webapp(
+define lamp::webapp (
   $db_name,
   $db_user,
   $db_host,
   $db_password,
   $docroot = '/var/www/html'
-  ){
+) {
   class { 'apache':
     default_mods  => false,
     mpm_module    => 'prefork',
@@ -642,9 +642,9 @@ The `db_user` and `db_password` parameters are set as usual.
 The `nodes` parameter is where the orchestration magic happens. This parameter takes
 a hash of nodes paired with one or more components. In this case, we've assigned the
 `Lamp::Mysql['app1']` component to `database.learning.puppetlabs.vm` and the
-`Lamp::Webapp['app1'] component to `webserver.learning.puppetlabs.vm`. When the
+`Lamp::Webapp['app1']` component to `webserver.learning.puppetlabs.vm`. When the
 Application Orchestrator runs, it uses the `exports` and `consumes` metaparameters
-in your application definition (i.e. in your `lamp/manifests/init.pp` manifest)
+in your application definition (in your `lamp/manifests/init.pp` manifest, for example)
 to determine the correct order of Puppet runs across the nodes in the application.
 
 Now that the application is declared in our `site.pp` manifest, we can use the
@@ -657,7 +657,7 @@ You should see a result like the following:
     Lamp['app1']
       Lamp::Mysql['app1'] => database.learning.puppetlabs.vm
           - produces Sql['app1']
-      Lamp::Webapp['test'] => webserver.learning.puppetlabs.vm
+      Lamp::Webapp['app1'] => webserver.learning.puppetlabs.vm
           - consumes Sql['app1']
 
 {% task 11 %}
@@ -665,12 +665,11 @@ You should see a result like the following:
 execute: ls
 {% endtask %}
 
-With the application is ready to go, you can run it with the `puppet job`
-command
+Use the `puppet job` command to deploy the application.
 
     puppet job run Lamp['app1']
 
-We you can check on the status of any running or completed jobs with the
+You can check on the status of any running or completed jobs with the
 `puppet job list` command.
 
 Now that your nodes are configured with your new application, let's take a moment
@@ -698,3 +697,26 @@ In a web browser on your host machine, go to `http://<IP_ADDRESS>:10080` to see 
 php website.
 
 ## Review
+
+In the quest, we discussed the role of the Puppet Orchestrator tool in coordinating Puppet
+runs across multiple nodes.
+
+Before getting into the specifics of defining an application and running it as a job, we
+covered the configuration details on the Puppet agent nodes and the setup for the Puppet
+Application Orchestrator client. You can review these steps and find further information
+at the [Puppet Documentation](https://docs.puppetlabs.com/pe/latest/app_orchestration_overview.html)
+website.
+
+Defining an application generally requires several distinct manifests and ruby extensions:
+
+*  Application components, which are typically written as defined resource types
+*  New type definitions for any environment resources needed to pass parameters among
+   your components
+*  An application definition to declare your application components and specify their
+   relationships to one another.
+*  A declaration of your application in the `site` block of your `site.pp` manifest
+   to assign your components to nodes in your infrastructure.
+
+Once an application is defined, you can use the `puppet app show` command to see it,
+and the `puppet job run` command to run it. You can see running and completed jobs with
+the `puppet job list` command.
