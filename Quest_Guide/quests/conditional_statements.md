@@ -299,7 +299,7 @@ You can use the `puppet resource` tool to verify the results.
 ### Unless
 
 The `unless` statement works like a reversed `if` statement. An `unless`
-statements takes a condition and a block of Puppet code. It will only execute
+statement takes a condition and a block of Puppet code. It will only execute
 the block **if** the condition is **false**. If the condition is true, Puppet
 will do nothing and move on. Note that there is no equivalent of `elsif` or
 `else` clauses for `unless` statements.
@@ -313,6 +313,8 @@ execute the first block of code whose case value matches the control expression.
 
 A special `default` case matches anything. It should always be included at the
 end of a case statement to catch anything that did not match an explicit case.
+While your other cases will often be strings with surrounding quotation marks,
+the `default` case is a bare word without surrounding quotation marks.
 
 For instance, if you were setting up an Apache webserver, you might use a case
 statement like the following:

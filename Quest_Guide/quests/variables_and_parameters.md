@@ -72,7 +72,7 @@ For instance, if you wanted Puppet to manage several files in the `/var/www/html
 directory, you could assign this directory path to a variable:
 
 {% highlight puppet %}
-$doc_root = '/var/root/www/html/questguide/'
+$doc_root = '/var/www/html/questguide/'
 {% endhighlight %}
 
 Once the variable is set, you can avoid repeating the same directory path by
@@ -189,9 +189,9 @@ for your manifest with an `include` statement for the web class you created
 Create a `web/examples/init.pp` manifest 
 and insert `include web`. Save and exit the file, then apply it, using the `--noop` 
 flag (`puppet apply --noop web/examples/init.pp`). If your dry run looks good, run 
-puppet apply again without the flag:
+`puppet apply` again without the flag:
 
-  puppet apply --noop web/examples/init.pp
+    puppet apply --noop web/examples/init.pp
 
 {% task 4 %}
 ---
