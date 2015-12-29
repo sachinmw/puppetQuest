@@ -19,16 +19,28 @@ layout: default
 
 If you manage applications comprised of multiple services distributed across multiple
 nodes, you'll know that the orchestration of multiple nodes can pose some special
-challenges. Puppet's Application Orchestrator extends Puppet's powerful declarative model
-from the level of the single node to the complex application. Describe your app in Puppet
-code, and let the Application Orchestrator coordinate the rollout.
+challenges. Your applications likely need to share information among the nodes involved
+and configuration changes need to be made in the right order to keep your application's
+components from getting out of sync.
 
-Before getting started, you should know that this quest will be a significant step
-up in complexity from the ones that have come before it, both in terms of the concepts
-involved and the varieties of tools and configurations you'll be working with. Keep in
-mind that the Puppet Application Orchestrator is a new feature. Though it is already
-powerful, it will continue to be improved, refined, and better integrated with the rest
-of the Puppet ecosystem.
+Puppet's Application Orchestrator extends Puppet's powerful declarative model
+from the level of the single node to that of the complex application. Describe your app
+in Puppet code, and let the Application Orchestrator handle the implementation.
+
+**Please note:** Before getting started, you should know that this quest will be a significant
+step up in complexity from the ones that have come before it, both in terms of the concepts
+involved and the varieties of tools and configurations you'll be working with. Keep
+in mind that the Puppet Application Orchestrator is a new feature, and though it is already
+a powerful tool, it will continue to be extended, refined, and integrated with the rest
+of the Puppet ecosystem. In the meantime, please be patient with any issues you encounter.
+You may find it useful to refer to the
+[documentation for the Application Orchestrator](https://docs.puppetlabs.com/pe/latest/app_orchestration_overview.html)
+to supplement the information in this quest.
+
+Also, be aware that the multi-node setup from the previous quest is a prerequisite to
+this quest. As noted in that quest, the docker technology we're using to provide multiple
+nodes on a single VM does come at a certain cost to performance and stability. If you
+encounter any issues, please contact us at learningvm@puppetlabs.com.
 
 When you're ready to get started, type the following command:
 
@@ -138,8 +150,8 @@ node /^(webserver|database).*$/ {
 execute: ls
 {% endtask %}
 
-We can use the console to trigger Puppet runs on our two nodes directly.
-Navigate to your PE console by entering `https://<VM's IP ADDRESS>` in the
+You can trigger Puppet runs on the two nodes directly from the PE console.
+Navigate to your PE console by entering `https://<VM'S IP ADDRESS>` in the
 address bar of your browser. Log in with the following credentials:
 
 * User: admin
@@ -399,8 +411,7 @@ define lamp::mysql
 (
   $db_user,
   $db_password,
-  $host = $::fqdn,
-  $port = 3306,
+  $host = $::hostname,
   $database = $name,
 ) {
 
@@ -409,20 +420,13 @@ define lamp::mysql
     override_options => {
       'mysqld' => { 'bind-address' => '0.0.0.0' }
     },
-    grants => {
-      "${db_user}@%/${database}.*" => {
-        ensure     => present,
-        options    => ['GRANT'],
-        privileges => ['SELECT', 'INSERT', 'UPDATE', 'DELETE'],
-        table      => "${database}.*",
-        user       => "${db_user}@%",
-      },
-    }
   }
 
   mysql::db { $name:
-    user =>     $db_user,
+    user     =>     $db_user,
     password => $db_password,
+    host     => '%',
+    grant    => ['SELECT', 'INSERT', 'UPDATE', 'DELETE'],
   }
 
   class { '::mysql::bindings':
@@ -435,8 +439,7 @@ Lamp::Mysql produces Sql {
   user     => $db_user,
   password => $db_password,
   host     => $host,
-  database => $name,
-  port     => $port,
+  database => $database,
 }
 {% endhighlight %}
 
@@ -459,10 +462,10 @@ It will look like this:
 
 {% highlight puppet %}
 define lamp::webapp (
-  $db_name,
   $db_user,
-  $db_host,
   $db_password,
+  $db_host,
+  $db_name,
   $docroot = '/var/www/html'
 ) {
   class { 'apache':
@@ -502,10 +505,10 @@ define lamp::webapp (
 
 }
 Lamp::Webapp consumes Sql {
-  db_name     => $name,
   db_user     => $user,
-  db_host     => $host,
   db_password => $password,
+  db_host     => $host,
+  db_name     => $database,
 }
 {% endhighlight %}
 
@@ -561,7 +564,7 @@ Lamp::Mysql produces Sql {
   user     => $db_user,
   password => $db_password,
   host     => $host,
-  database => $name,
+  database => $database,
 }
 {% endhighlight %}
 
@@ -693,8 +696,8 @@ Now go ahead and disconnect from the database node.
 Instead of logging in to our webserver node, let's just check if the server is running.
 In the pre-configured docker setup for this quest, we mapped port 80 on the
 `webserver.learning.puppetlabs.vm` container to port 10080 on `learning.puppetlabs.vm`.
-In a web browser on your host machine, go to `http://<IP_ADDRESS>:10080` to see your
-php website.
+In a web browser on your host machine, go to `http://<IP_ADDRESS>:10080/index.php` to see your
+PHP website.
 
 ## Review
 
