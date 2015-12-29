@@ -48,7 +48,7 @@ that defines the behavior of these custom resource *types* and the *providers*
 that implement them on a system. 
 
 Writing custom providers, however, is a significant commitment. When you start
-writing your own providers, you're taking on responsbility for all the
+writing your own providers, you're taking on responsibility for all the
 abstraction Puppet uses to handle the implementation of that resource on diverse
 operating systems and configurations. Though this kind of project can be a great
 contribution to the Puppet community, it's not generally appropriate for a

@@ -15,7 +15,7 @@ layout: default
 Conditional statements allow you to write Puppet code that will return different
 values or execute different blocks of code depending on conditions you specify.
 In conjunction with Facter, which makes details of a machine available as 
-variables, this lets you write Puppet code that flexibly accomodates different
+variables, this lets you write Puppet code that flexibly accommodates different
 platforms, operating systems, and functional requirements.
 
 To start this quest enter the following command:
@@ -375,5 +375,5 @@ facter to determine how to set the group for an administrator user account.
 We also covered a few other forms of conditional statement: `unless`, the case
 statement, and the selector. Though there aren't any hard-and-fast rules for
 which conditional statement is best in a given situation, there will generally
-be one that results in the most concise and readible code. It's up to you to
+be one that results in the most concise and readable code. It's up to you to
 decide what works best.
