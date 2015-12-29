@@ -12,7 +12,7 @@ layout: default
 ## Quest objectives
 
 - Use a Puppet module to set up a Graphite monitoring server on the Learning VM.
-- Use the Puppet Enterprise console's node classifier to effeciently manage the
+- Use the Puppet Enterprise console's node classifier to efficiently manage the
   Learning VM's configuration.
 
 ## Get started
@@ -84,7 +84,7 @@ this installation easy. Go ahead and run:
     
 {% aside Offline? %}
 If you don't have internet access, run the following terminal commands to use
-cached versions of all the modules reqiuired for quests in this guide:
+cached versions of all the modules required for quests in this guide:
 
     for m in /usr/src/forge/*; do puppet module install $m --ignore-dependencies; done
 
@@ -178,7 +178,7 @@ Click on the new group to set the rules for this group. You only want the `learn
 this group, so instead of adding a rule, use the *Pin node* option to add the node individually.
 
 Click on the *Node name* field, and you should see the Learning VM's certname autofilled. If no matching
-certname apprears, trigger a Puppet run (`puppet agent -t`) on the Learning VM. As part of the Puppet
+certname appears, trigger a Puppet run (`puppet agent -t`) on the Learning VM. As part of the Puppet
 run, the Learning VM will check in, making its information available to the console node classifier.
 
 {% figure '../assets/pin.png' %}
@@ -202,7 +202,7 @@ Once you have entered `graphite` in the *Class name* text box, click the *Add cl
 
 Before you apply the class, there are a few parameters you'll want to set.
 
-We aleady have an Apache server configured to our liking on the Learning VM, so we can
+We already have an Apache server configured to our liking on the Learning VM, so we can
 tell the `graphite` class it doesn't need to bother setting up its own server.
 
 There are also some compatibility issues with the latest Django version. The author of this

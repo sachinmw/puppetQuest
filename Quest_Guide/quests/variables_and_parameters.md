@@ -173,7 +173,7 @@ class web {
 Note that if you wanted to make a change to the `$doc_root` directory, you'd
 only have to do this in one place. While there are more advanced forms of data
 separation in Puppet, the basic principle is the same: The more distinct your
-code is from the underlying data, the more resuable it is, and the less
+code is from the underlying data, the more reusable it is, and the less
 difficult it will be to refactor when you have to make changes later.
 
 {% task 3 %}
