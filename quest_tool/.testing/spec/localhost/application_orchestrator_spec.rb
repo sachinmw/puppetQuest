@@ -76,6 +76,6 @@ end
 
 describe "Task 11:" do
   it "Trigger a puppet job run to deploy your application" do
-    command('docker exec webserver curl localhost').stdout.should match /successfully/
+    command('docker exec webserver curl localhost/index.php').stdout.should match /successfully/
   end
 end
