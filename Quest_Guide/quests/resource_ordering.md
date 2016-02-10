@@ -189,6 +189,10 @@ the Modules quest, you can copy the existing configuration file into your module
 
     cp /etc/ssh/sshd_config sshd/files/sshd_config
 
+You will also need to ensure that the `pe-puppet` user has permissions to read this file.
+
+    chown pe-puppet:pe-puppet sshd/files/sshd_config
+
 {% task 6 %}
 ---
 - execute: vim /etc/puppetlabs/code/environments/production/modules/sshd/files/sshd_config
