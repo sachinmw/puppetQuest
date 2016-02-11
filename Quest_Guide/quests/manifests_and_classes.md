@@ -144,7 +144,13 @@ anything with it.
   content: include cowsayings::cowsay
 {% endtask %}
 
-To actually declare the class, create a `cowsay.pp` test in the examples directory.
+If you were going to apply this code to your production infrastructure, you would use
+the console's node classifier to classify any nodes that needed cowsay installed with
+the cowsay with your cowsay class. As you're working on a module, however, it's useful
+to apply a class directly. By convention, these test manifests are kept in an `examples`
+directory. (You may also sometimes see these manifests in a `tests` directory.)
+
+Create a `cowsay.pp` test in the examples directory.
 
     vim cowsayings/examples/cowsay.pp
 
