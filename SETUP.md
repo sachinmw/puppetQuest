@@ -15,13 +15,13 @@ documentation.)
 
 3. *Before* starting the VM for the first time, you will need to adjust its settings.
 Allocate 2 CPUs. We recommend allocating 4GB of memory for the best performance. If you
-don't have enough memory on your host machine, you leave the allocation at 3GB, or lower
+don't have enough memory on your host machine, you may leave the allocation at 3GB or lower
 it to 2GB, though you may encounter stability and performance issues. Set the *Network Adapter* to
 *Bridged*. Use an *Autodetect* setting if available, or accept the default Network Adapter name.
 (If you started the VM before making these changes, you may need to restart the VM
-before the settings will be applied correctly.) (**Note:** If you have encounter
-errors starting the VM with VirtualBox, set your CPUs to 1 and disable the I/O APIC
-option.)
+before the settings will be applied correctly.) **Note:** If you encounter
+errors starting the VM with VirtualBox, please set your CPUs to 1 and disable the I/O APIC
+option.
 
 4. Start the VM. When it is started, make a note of the IP address and password displayed
 on the splash page. Rather than logging in directly, we highly recommend using SSH. On OS X,
@@ -153,7 +153,7 @@ be able to use the arrow keys to scroll. Press q to exit scrolling.
 
 ### Running the VM in VirtualBox, I encounter a series of "Rejecting I/O input from offline devices"
 
-Reducing the VM's processors to 1 and disable the "I/O APIC" option in the system
+Reduce the VM's processors to 1 and disable the "I/O APIC" option in the system
 section of the settings menu.
 
 ### Still need help?
