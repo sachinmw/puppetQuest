@@ -188,6 +188,10 @@ If your dry run looks good, go ahead and run `puppet apply` again without the
 `--noop` flag. If everything went according to plan, the cowsay package is now
 installed on the Learning VM. Give it a try!
 
+(Some users have reported issues installing the cached version of the cowsay package
+when running the VM offline. If you enounter issues, please try installing the package manually:
+`gem install /var/cache/rubygems/gems/cowsay-0.2.0.gem`.)
+
     cowsay Puppet is awesome!
 
 Your bovine friend clearly knows what's up.

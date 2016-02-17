@@ -86,7 +86,7 @@ this installation easy. Go ahead and run:
 If you don't have internet access, run the following terminal commands to use
 cached versions of all the modules required for quests in this guide:
 
-    for m in /usr/src/forge/*; do puppet module install $m --ignore-dependencies; done
+    rsync -r /usr/src/forge/* /etc/puppetlabs/code/modules/
 
 This installs the modules for all of the quests in this guide. You can
 skip future instructions for installing modules.
