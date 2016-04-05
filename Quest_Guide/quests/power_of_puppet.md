@@ -80,7 +80,7 @@ Now that you know what module you want, you'll need to install it to the Puppet
 master to make it available for your infrastructure. The `puppet module` tool makes
 this installation easy. Go ahead and run:
 
-    puppet module install dwerder-graphite
+    puppet module install dwerder-graphite --version 5.16.1
     
 {% aside Offline? %}
 If you don't have internet access, run the following terminal commands to use
