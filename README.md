@@ -1,3 +1,8 @@
+# Defunct
+
+See: https://github.com/puppetlabs/puppet-quest-guide for the current content of the quest guide.
+
+
 # Courseware Learning VM
 
 ## Synopsis
