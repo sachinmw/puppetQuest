@@ -91,6 +91,7 @@ tags, like so:
 	{% raw puppet %}
 	user { 'root':
   		ensure           => 'present',
+		}
   	{% endraw %}
 
 #### Asides
