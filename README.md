@@ -88,10 +88,10 @@ a Liquid Exception and point you to the offending file.
 Blocks of code must be wrapped in `{% highlight <language> %} {% endhighlight %}`
 tags, like so:
 
-	{% highlight puppet %}
+	{% raw puppet %}
 	user { 'root':
   		ensure           => 'present',
-  	{% endhighlight %}
+  	{% endraw %}
 
 #### Asides
 
